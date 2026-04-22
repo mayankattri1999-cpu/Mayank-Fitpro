@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitPro — Your Personal Athletic Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --dark: #111318;
+    --card: #181c24;
+    --card2: #1e2330;
+    --border: rgba(255,255,255,0.07);
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #47ffe8;
+    --text: #f0f2f7;
+    --muted: #7a8099;
+    --success: #4ade80;
+    --warn: #facc15;
+    --danger: #f87171;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: .4;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 60px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; letter-spacing: 2px;
+    color: var(--accent); text-decoration: none;
+  }
+  .nav-logo span { color: var(--text); }
+  .nav-links { display: flex; gap: 1.5rem; }
+  .nav-links a {
+    font-size: .8rem; font-weight: 500; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 100px 2rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(232,255,71,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 20% 80%, rgba(71,255,232,0.04) 0%, transparent 70%),
+      linear-gradient(180deg, #0a0a0a 0%, #0d1018 100%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(232,255,71,0.08); border: 1px solid rgba(232,255,71,0.2);
+    padding: .35rem 1rem; border-radius: 99px;
+    font-size: .75rem; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
+  }
+  .hero-badge::before { content: '●'; font-size: .4rem; }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 9rem);
+    line-height: .9; letter-spacing: 1px; color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  .hero-title .accent { color: var(--accent); }
+  .hero-title .accent2 { color: var(--accent2); }
+  .hero-sub {
+    font-size: 1.1rem; color: var(--muted); max-width: 520px;
+    margin-bottom: 2.5rem; font-weight: 300;
+  }
+  .hero-cta {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .8rem 2rem; border-radius: var(--radius-sm);
+    font-size: .9rem; font-weight: 600; cursor: pointer;
+    border: none; text-decoration: none; transition: all .2s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--accent); color: var(--black);
+  }
+  .btn-primary:hover { background: #d4eb3a; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,255,71,0.25); }
+  .btn-outline {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--accent2); color: #fff; }
+  .btn-danger:hover { background: #e55a28; transform: translateY(-2px); }
+  .hero-stats {
+    position: relative; z-index: 1;
+    display: flex; gap: 3rem; margin-top: 4rem;
+    padding-top: 2rem; border-top: 1px solid var(--border);
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem; color: var(--accent); line-height: 1;
+  }
+  .stat-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── QUOTE TICKER ── */
+  .quote-bar {
+    background: var(--accent); color: var(--black);
+    padding: .6rem 0; overflow: hidden;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 2px;
+  }
+  .quote-track {
+    display: flex; gap: 4rem;
+    animation: ticker 30s linear infinite;
+    width: max-content;
+  }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .quote-item { white-space: nowrap; }
+  .quote-sep { color: rgba(0,0,0,0.3); }
+
+  /* ── SECTION ── */
+  section { padding: 5rem 2rem; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-tag {
+    font-size: .7rem; font-weight: 700; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: .75rem;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1;
+    margin-bottom: .75rem;
+  }
+  .section-sub { color: var(--muted); font-size: .95rem; max-width: 480px; margin-bottom: 3rem; }
+
+  /* ── FORM SECTION ── */
+  #onboarding { background: var(--dark); }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+  .form-group { display: flex; flex-direction: column; gap: .5rem; }
+  .form-group.full { grid-column: 1 / -1; }
+  label {
+    font-size: .75rem; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  input, select {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: .75rem 1rem;
+    color: var(--text); font-family: inherit; font-size: .9rem;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,255,71,0.1);
+  }
+  select option { background: var(--card2); }
+  .form-actions { margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  /* ── RESULT SECTIONS ── */
+  #results { display: none; }
+  #results.visible { display: block; }
+
+  /* ── BMI CARD ── */
+  .bmi-display {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    display: flex; flex-direction: column; gap: 1.5rem;
+  }
+  .bmi-value-row { display: flex; align-items: flex-end; gap: 1rem; }
+  .bmi-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem; line-height: 1; color: var(--accent);
+  }
+  .bmi-cat-badge {
+    display: inline-flex; align-items: center;
+    padding: .4rem 1rem; border-radius: 99px;
+    font-size: .8rem; font-weight: 700; letter-spacing: .05em;
+    margin-bottom: .5rem;
+  }
+  .bmi-bar-wrap { position: relative; }
+  .bmi-bar-track {
+    height: 8px; border-radius: 99px; overflow: hidden;
+    background: linear-gradient(90deg, #47ffe8 0%, #4ade80 25%, #facc15 50%, #f87171 100%);
+  }
+  .bmi-pointer {
+    position: absolute; top: -4px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--black);
+    box-shadow: 0 0 0 2px var(--accent);
+    transform: translateX(-50%);
+    transition: left .6s cubic-bezier(.34,1.56,.64,1);
+  }
+  .bmi-labels {
+    display: flex; justify-content: space-between;
+    font-size: .65rem; color: var(--muted); margin-top: .4rem;
+  }
+  .bmi-interpretation { color: var(--muted); font-size: .9rem; line-height: 1.7; }
+
+  /* ── WORKOUT PLAN ── */
+  #workout-section { background: var(--black); }
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+  .day-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .day-card:hover { transform: translateY(-4px); border-color: rgba(232,255,71,0.2); }
+  .day-card.rest-day { opacity: .65; }
+  .day-header {
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .day-num {
+    font-family: 'DM Mono', monospace; font-size: .7rem;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .day-name {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem;
+    color: var(--text); line-height: 1;
+  }
+  .day-badge {
+    font-size: .65rem; font-weight: 700; padding: .25rem .6rem;
+    border-radius: 99px; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .day-body { padding: 1.25rem; }
+  .exercise-list { list-style: none; display: flex; flex-direction: column; gap: .75rem; }
+  .exercise-item {
+    display: flex; align-items: flex-start; gap: .75rem;
+  }
+  .exercise-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; flex-shrink: 0;
+    background: rgba(232,255,71,0.08);
+  }
+  .exercise-info {}
+  .exercise-name { font-size: .85rem; font-weight: 500; }
+  .exercise-detail { font-size: .75rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .superset-label {
+    font-size: .65rem; font-weight: 700; color: var(--accent2);
+    text-transform: uppercase; letter-spacing: .08em;
+    padding: .2rem .5rem; background: rgba(255,107,53,0.1);
+    border-radius: 4px; display: inline-block; margin-bottom: .25rem;
+  }
+  .day-footer {
+    padding: .75rem 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .duration-pill {
+    font-family: 'DM Mono', monospace; font-size: .72rem;
+    color: var(--accent3); display: flex; align-items: center; gap: .3rem;
+  }
+  .intensity-dots { display: flex; gap: 3px; }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border);
+  }
+  .dot.on { background: var(--accent); }
+
+  /* ── ATHLETIC MODULE ── */
+  #athletic { background: var(--dark); }
+  .athletic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+  .athletic-card {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform .2s;
+  }
+  .athletic-card:hover { transform: translateY(-3px); }
+  .athletic-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .athletic-card.sprint::before { background: var(--accent); }
+  .athletic-card.agility::before { background: var(--accent2); }
+  .athletic-card.explosive::before { background: var(--accent3); }
+  .athletic-card.mma::before { background: #a78bfa; }
+  .athletic-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .athletic-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; margin-bottom: .5rem; }
+  .athletic-desc { font-size: .82rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.6; }
+  .drill-list { list-style: none; display: flex; flex-direction: column; gap: .4rem; }
+  .drill-item {
+    font-size: .8rem; display: flex; align-items: center; gap: .5rem;
+  }
+  .drill-item::before { content: '›'; color: var(--accent); font-weight: 700; }
+
+  /* ── DIET PLAN ── */
+  #diet { background: var(--black); }
+  .diet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+  .meal-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .meal-header {
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .meal-icon { font-size: 1.4rem; }
+  .meal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+  .meal-time { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--muted); }
+  .meal-body { padding: 1.25rem; }
+  .food-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: .5rem 0; border-bottom: 1px solid var(--border);
+  }
+  .food-item:last-child { border-bottom: none; }
+  .food-name { font-size: .85rem; }
+  .food-cal { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--accent); }
+  .macro-bar {
+    display: flex; gap: .5rem; margin-top: 1rem; padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .macro-pill {
+    flex: 1; text-align: center; padding: .4rem;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.04);
+  }
+  .macro-val { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--accent3); font-weight: 500; }
+  .macro-label { font-size: .6rem; color: var(--muted); text-transform: uppercase; }
+
+  .hydration-card {
+    background: linear-gradient(135deg, rgba(71,255,232,0.05), rgba(71,255,232,0.02));
+    border: 1px solid rgba(71,255,232,0.15);
+    border-radius: var(--radius); padding: 1.5rem;
+    margin-top: 1.25rem;
+  }
+  .hydration-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem;
+    color: var(--accent3); margin-bottom: .75rem;
+  }
+  .water-icons { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+  .water-drop { font-size: 1.4rem; }
+
+  /* ── WELLNESS ── */
+  #wellness { background: var(--dark); }
+  .wellness-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+  .wellness-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem;
+  }
+  .wellness-icon { font-size: 2.2rem; margin-bottom: .75rem; }
+  .wellness-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; margin-bottom: .5rem; }
+  .wellness-content { font-size: .85rem; color: var(--muted); line-height: 1.8; }
+  .wellness-list { list-style: none; margin-top: .75rem; display: flex; flex-direction: column; gap: .4rem; }
+  .wellness-list li { font-size: .82rem; display: flex; gap: .5rem; }
+  .wellness-list li::before { content: '✓'; color: var(--success); font-weight: 700; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--card); border-top: 1px solid var(--border);
+    padding: 2rem; text-align: center;
+  }
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+    color: var(--accent); letter-spacing: 3px; margin-bottom: .5rem;
+  }
+  .footer-text { font-size: .8rem; color: var(--muted); }
+
+  /* ── IMAGE BANNER ── */
+  .image-banner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .75rem; margin-top: 3rem;
+  }
+  .image-card {
+    border-radius: var(--radius); overflow: hidden;
+    aspect-ratio: 4/3; position: relative;
+    background: var(--card2);
+  }
+  .image-card img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .4s;
+    filter: brightness(0.7) saturate(0.9);
+  }
+  .image-card:hover img { transform: scale(1.05); }
+  .image-card-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: .75rem 1rem;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    font-size: .75rem; font-weight: 600; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--accent);
+  }
+
+  /* ── MOTIVATIONAL QUOTE DYNAMIC ── */
+  .quote-card {
+    background: linear-gradient(135deg, rgba(232,255,71,0.06), rgba(232,255,71,0.02));
+    border: 1px solid rgba(232,255,71,0.15);
+    border-radius: var(--radius); padding: 2rem;
+    margin-bottom: 3rem; text-align: center;
+    position: relative;
+  }
+  .quote-mark { font-size: 4rem; color: rgba(232,255,71,0.1); line-height: 1; }
+  .quote-text {
+    font-size: 1.2rem; font-style: italic; color: var(--text);
+    line-height: 1.7; margin: .5rem 0;
+  }
+  .quote-author { font-size: .8rem; color: var(--accent); font-weight: 600; letter-spacing: .08em; }
+  .quote-refresh {
+    position: absolute; top: 1rem; right: 1rem;
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 1rem; transition: color .2s;
+  }
+  .quote-refresh:hover { color: var(--accent); }
+
+  /* ── PROGRESS RING ── */
+  .profile-summary {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem; align-items: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 2rem;
+    margin-bottom: 3rem;
+  }
+  .profile-ring { position: relative; width: 100px; height: 100px; }
+  .profile-ring svg { transform: rotate(-90deg); }
+  .profile-ring-center {
+    position: absolute; inset: 0; display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+  }
+  .profile-initial {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+    color: var(--accent); line-height: 1;
+  }
+  .profile-info {}
+  .profile-name { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; }
+  .profile-meta { color: var(--muted); font-size: .85rem; margin-top: .25rem; }
+  .profile-tags { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .75rem; }
+  .profile-tag {
+    font-size: .7rem; font-weight: 600; padding: .25rem .6rem;
+    border-radius: 99px; background: rgba(232,255,71,0.08);
+    border: 1px solid rgba(232,255,71,0.15); color: var(--accent);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  /* ── CALORIE DISPLAY ── */
+  .calorie-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem; margin-bottom: 2rem;
+  }
+  .cal-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 1.25rem; text-align: center;
+  }
+  .cal-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+    color: var(--accent3); line-height: 1;
+  }
+  .cal-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-top: .25rem; }
+
+  /* responsive */
+  @media(max-width: 600px) {
+    .image-banner { grid-template-columns: 1fr; }
+    .hero-stats { gap: 1.5rem; flex-wrap: wrap; }
+    .profile-summary { grid-template-columns: 1fr; }
+    nav .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">FIT<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="#onboarding">Profile</a>
+    <a href="#workout-section">Workouts</a>
+    <a href="#athletic">Athletic</a>
+    <a href="#diet">Diet</a>
+    <a href="#wellness">Wellness</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">AI-Powered Personal Coach</div>
+    <h1 class="hero-title">
+      BUILD YOUR<br>
+      <span class="accent">BEST</span><br>
+      <span class="accent2">PHYSIQUE</span>
+    </h1>
+    <p class="hero-sub">
+      Tailored workouts, smart nutrition, and athletic programming for busy professionals — 
+      all in 1 hour 20 minutes a day.
+    </p>
+    <div class="hero-cta">
+      <a href="#onboarding" class="btn btn-primary">Start Your Plan →</a>
+      <a href="#workout-section" class="btn btn-outline">View Plans</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">80</div>
+      <div class="stat-label">Minutes / Session</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">7</div>
+      <div class="stat-label">Day Weekly Split</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Goal Personalized</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Excuses Allowed</div>
+    </div>
+  </div>
+
+  <!-- Image Banner in hero -->
+  <div class="image-banner" style="position:relative;z-index:1;margin-top:3rem;">
+    <div class="image-card">
+      <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80" alt="Gym training">
+      <div class="image-card-label">Strength Training</div>
+    </div>
+    <div class="image-card">
+      <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80" alt="Athletic training">
+      <div class="image-card-label">Athletic Performance</div>
+    </div>
+    <div class="image-card">
+      <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80" alt="Bodyweight workout">
+      <div class="image-card-label">Bodyweight Power</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE TICKER -->
+<div class="quote-bar">
+  <div class="quote-track" id="quoteTicker">
+    <span class="quote-item">💪 THE BODY ACHIEVES WHAT THE MIND BELIEVES <span class="quote-sep">✦</span></span>
+    <span class="quote-item">🔥 NO SHORTCUTS. JUST RESULTS <span class="quote-sep">✦</span></span>
+    <span class="quote-item">⚡ TRAIN INSANE OR REMAIN THE SAME <span class="quote-sep">✦</span></span>
+    <span class="quote-item">🏆 DISCIPLINE IS THE BRIDGE BETWEEN GOALS AND ACHIEVEMENT <span class="quote-sep">✦</span></span>
+    <span class="quote-item">💥 SWEAT IS JUST FAT CRYING <span class="quote-sep">✦</span></span>
+    <span class="quote-item">🎯 ONE MORE REP. ALWAYS ONE MORE <span class="quote-sep">✦</span></span>
+    <span class="quote-item">💪 THE BODY ACHIEVES WHAT THE MIND BELIEVES <span class="quote-sep">✦</span></span>
+    <span class="quote-item">🔥 NO SHORTCUTS. JUST RESULTS <span class="quote-sep">✦</span></span>
+    <span class="quote-item">⚡ TRAIN INSANE OR REMAIN THE SAME <span class="quote-sep">✦</span></span>
+    <span class="quote-item">🏆 DISCIPLINE IS THE BRIDGE BETWEEN GOALS AND ACHIEVEMENT <span class="quote-sep">✦</span></span>
+    <span class="quote-item">💥 SWEAT IS JUST FAT CRYING <span class="quote-sep">✦</span></span>
+    <span class="quote-item">🎯 ONE MORE REP. ALWAYS ONE MORE <span class="quote-sep">✦</span></span>
+  </div>
+</div>
+
+<!-- ONBOARDING FORM -->
+<section id="onboarding">
+  <div class="container">
+    <div class="section-tag">Step 01 — Your Profile</div>
+    <h2 class="section-title">Tell Us About You</h2>
+    <p class="section-sub">Fill in your details and we'll build a complete personalized program tailored to your goals.</p>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="name" placeholder="e.g. Arjun Sharma" />
+      </div>
+      <div class="form-group">
+        <label>Age</label>
+        <input type="number" id="age" placeholder="e.g. 28" min="15" max="65" />
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="gender">
+          <option value="">Select gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other / Prefer not to say</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Height (cm)</label>
+        <input type="number" id="height" placeholder="e.g. 175" min="140" max="220" />
+      </div>
+      <div class="form-group">
+        <label>Weight (kg)</label>
+        <input type="number" id="weight" placeholder="e.g. 72" min="40" max="200" />
+      </div>
+      <div class="form-group">
+        <label>Fitness Goal</label>
+        <select id="goal">
+          <option value="">Select goal</option>
+          <option value="fat-loss">🔥 Fat Loss</option>
+          <option value="muscle-gain">💪 Muscle Gain</option>
+          <option value="lean-athletic">⚡ Lean Athletic Body</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Experience Level</label>
+        <select id="level">
+          <option value="">Select level</option>
+          <option value="beginner">🌱 Beginner (0–1 yr)</option>
+          <option value="intermediate">🔥 Intermediate (1–3 yrs)</option>
+          <option value="advanced">⚡ Advanced (3+ yrs)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Available Time / Day</label>
+        <select id="time">
+          <option value="60">60 minutes</option>
+          <option value="80" selected>80 minutes (Recommended)</option>
+          <option value="90">90 minutes</option>
+          <option value="45">45 minutes (Short)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Preferred Training Type</label>
+        <select id="trainingType">
+          <option value="">Select type</option>
+          <option value="gym">🏋️ Gym</option>
+          <option value="home">🏠 Home Workout</option>
+          <option value="hybrid">⚡ Hybrid (Gym + Home)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="generatePlan()">⚡ Generate My Plan</button>
+      <button class="btn btn-outline" onclick="resetForm()">↺ Reset</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS (hidden until form submitted) -->
+<div id="results">
+
+  <!-- BMI SECTION -->
+  <section id="bmi-section" style="background:var(--black);">
+    <div class="container">
+      <div class="section-tag">Step 02 — Body Analysis</div>
+      <h2 class="section-title">Your BMI Report</h2>
+
+      <!-- Profile Summary -->
+      <div class="profile-summary" id="profileSummary"></div>
+
+      <div class="bmi-display">
+        <div class="bmi-value-row">
+          <div class="bmi-number" id="bmiNumber">—</div>
+          <div>
+            <div class="bmi-cat-badge" id="bmiCatBadge"></div>
+            <div style="font-size:.8rem;color:var(--muted);">Body Mass Index</div>
+          </div>
+        </div>
+        <div class="bmi-bar-wrap">
+          <div class="bmi-bar-track"></div>
+          <div class="bmi-pointer" id="bmiPointer" style="left:50%"></div>
+          <div class="bmi-labels">
+            <span>Underweight<br>&lt;18.5</span>
+            <span>Normal<br>18.5–24.9</span>
+            <span>Overweight<br>25–29.9</span>
+            <span>Obese<br>≥30</span>
+          </div>
+        </div>
+        <div class="bmi-interpretation" id="bmiInterp"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKOUT PLAN -->
+  <section id="workout-section">
+    <div class="container">
+      <div class="section-tag">Step 03 — Weekly Program</div>
+      <h2 class="section-title">Your Workout Plan</h2>
+      <p class="section-sub" id="workoutSubtitle">Personalized split designed for your goal and experience level.</p>
+
+      <!-- Dynamic quote -->
+      <div class="quote-card">
+        <div class="quote-mark">"</div>
+        <div class="quote-text" id="dynamicQuote">Loading quote...</div>
+        <div class="quote-author" id="quoteAuthor">— Loading</div>
+        <button class="quote-refresh" onclick="rotateQuote()" title="New quote">↻</button>
+      </div>
+
+      <div class="week-grid" id="weekGrid"></div>
+    </div>
+  </section>
+
+  <!-- ATHLETIC MODULE -->
+  <section id="athletic">
+    <div class="container">
+      <div class="section-tag">Step 04 — Athletic Performance</div>
+      <h2 class="section-title">Athletic Training</h2>
+      <p class="section-sub">Speed, power, and agility work to make you move like an athlete.</p>
+
+      <div class="image-banner" style="margin-bottom:2rem;">
+        <div class="image-card">
+          <img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&q=80" alt="Sprint training">
+          <div class="image-card-label">Sprint HIIT</div>
+        </div>
+        <div class="image-card">
+          <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&q=80" alt="MMA training">
+          <div class="image-card-label">MMA Conditioning</div>
+        </div>
+        <div class="image-card">
+          <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80" alt="Explosive training">
+          <div class="image-card-label">Explosive Power</div>
+        </div>
+      </div>
+
+      <div class="athletic-grid" id="athleticGrid"></div>
+    </div>
+  </section>
+
+  <!-- DIET PLAN -->
+  <section id="diet">
+    <div class="container">
+      <div class="section-tag">Step 05 — Nutrition</div>
+      <h2 class="section-title">Indian Diet Plan</h2>
+      <p class="section-sub" id="dietSubtitle">High-protein, budget-friendly meals designed for your goal.</p>
+
+      <div class="calorie-strip" id="calorieStrip"></div>
+      <div class="diet-grid" id="dietGrid"></div>
+    </div>
+  </section>
+
+  <!-- WELLNESS -->
+  <section id="wellness">
+    <div class="container">
+      <div class="section-tag">Step 06 — Wellness</div>
+      <h2 class="section-title">Recovery & Wellness</h2>
+      <p class="section-sub">Recovery is where the magic happens. Protect your sleep, manage stress.</p>
+
+      <div class="wellness-grid" id="wellnessGrid"></div>
+    </div>
+  </section>
+
+  <!-- REGENERATE -->
+  <section style="background:var(--black);padding:3rem 2rem;text-align:center;">
+    <div class="container">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;margin-bottom:.75rem;">Want a Different Plan?</h3>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:2rem;">Regenerate for a new workout variation, meal rotation, or edit your profile details.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-danger" onclick="generatePlan()">🔄 Regenerate Plan</button>
+        <a href="#onboarding" class="btn btn-outline">✏️ Edit Profile</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">FITPRO</div>
+  <p class="footer-text">Your AI-powered personal coach for busy professionals.<br>Built to help you build a lean, muscular, athletic physique — one session at a time.</p>
+</footer>
+
+<script>
+// ────────────────────────────────
+// DATA LIBRARY
+// ────────────────────────────────
+
+const QUOTES = [
+  { text: "The body achieves what the mind believes. Train with purpose, not just with effort.", author: "Napoleon Hill" },
+  { text: "It's not about having time. It's about making time. 80 minutes is enough to change everything.", author: "FitPro Coach" },
+  { text: "Discipline is the silent force behind every extraordinary physique you've ever admired.", author: "Unknown" },
+  { text: "Pain is temporary. The pride of a great physique lasts forever.", author: "Arnold Schwarzenegger" },
+  { text: "Don't count the days. Make the days count. Every session matters.", author: "Muhammad Ali" },
+  { text: "You don't have to be extreme. Just be consistent. That's the real secret.", author: "FitPro Coach" },
+  { text: "The iron never lies to you. You can walk outside and listen to all kinds of talk, get told that you're a god or a total bastard. The iron will always kick you the real deal.", author: "Henry Rollins" },
+  { text: "Strength does not come from physical capacity. It comes from an indomitable will.", author: "Mahatma Gandhi" },
+];
+let quoteIndex = 0;
+
+function rotateQuote() {
+  quoteIndex = (quoteIndex + 1) % QUOTES.length;
+  document.getElementById('dynamicQuote').textContent = QUOTES[quoteIndex].text;
+  document.getElementById('quoteAuthor').textContent = '— ' + QUOTES[quoteIndex].author;
+}
+
+// WORKOUT DATA
+const WORKOUT_PLANS = {
+  'fat-loss': {
+    beginner: [
+      { day: 'Monday', name: 'Chest + Triceps', color: '#e8ff47', intensity: 3,
+        exercises: [
+          { icon:'🏋️', name:'Flat Dumbbell Press', detail:'3×12 reps', superset: false },
+          { icon:'💪', name:'Push-Ups', detail:'3×15 reps', superset: true },
+          { icon:'🏋️', name:'Incline DB Press', detail:'3×12 reps', superset: false },
+          { icon:'💪', name:'Tricep Dips', detail:'3×10 reps', superset: true },
+          { icon:'🏋️', name:'Cable Pushdown', detail:'3×15 reps', superset: false },
+        ], duration: '70 min' },
+      { day: 'Tuesday', name: 'Back + Biceps', color: '#47ffe8', intensity: 3,
+        exercises: [
+          { icon:'🏋️', name:'Lat Pulldown', detail:'3×12 reps', superset: false },
+          { icon:'💪', name:'Resistance Band Row', detail:'3×15 reps', superset: true },
+          { icon:'🏋️', name:'Seated Cable Row', detail:'3×12 reps', superset: false },
+          { icon:'💪', name:'Dumbbell Curl', detail:'3×12 reps', superset: true },
+          { icon:'🏋️', name:'Hammer Curl', detail:'3×10 reps', superset: false },
+        ], duration: '70 min' },
+      { day: 'Wednesday', name: 'Legs', color: '#ff6b35', intensity: 4,
+        exercises: [
+          { icon:'🏋️', name:'Goblet Squat', detail:'4×12 reps', superset: false },
+          { icon:'💪', name:'Jump Squats', detail:'3×15 reps', superset: true },
+          { icon:'🏋️', name:'Romanian Deadlift', detail:'3×12 reps', superset: false },
+          { icon:'💪', name:'Walking Lunges', detail:'3×20 steps', superset: false },
+          { icon:'🏋️', name:'Leg Press', detail:'3×15 reps', superset: false },
+        ], duration: '75 min' },
+      { day: 'Thursday', name: 'Shoulders + Core', color: '#a78bfa', intensity: 3,
+        exercises: [
+          { icon:'🏋️', name:'DB Shoulder Press', detail:'3×12 reps', superset: false },
+          { icon:'💪', name:'Lateral Raises', detail:'3×15 reps', superset: true },
+          { icon:'💪', name:'Front Raises', detail:'3×12 reps', superset: false },
+          { icon:'💪', name:'Plank', detail:'3×60 sec', superset: false },
+          { icon:'💪', name:'Bicycle Crunches', detail:'3×20 reps', superset: false },
+        ], duration: '65 min' },
+      { day: 'Friday', name: 'Athletic Training', color: '#ff6b35', intensity: 5,
+        exercises: [
+          { icon:'⚡', name:'Sprint Intervals', detail:'6×30 sec on/30 off', superset: false },
+          { icon:'💪', name:'Burpees', detail:'4×10 reps', superset: false },
+          { icon:'💪', name:'Mountain Climbers', detail:'3×30 sec', superset: true },
+          { icon:'💪', name:'Shadow Boxing', detail:'4×2 min rounds', superset: false },
+          { icon:'💪', name:'Jump Rope', detail:'3×2 min', superset: false },
+        ], duration: '70 min' },
+      { day: 'Saturday', name: 'Full Body HIIT', color: '#4ade80', intensity: 4,
+        exercises: [
+          { icon:'💪', name:'Burpee + Pull-Up', detail:'4×8 reps', superset: false },
+          { icon:'🏋️', name:'KB Swings', detail:'3×15 reps', superset: false },
+          { icon:'💪', name:'Box Jumps', detail:'3×12 reps', superset: true },
+          { icon:'💪', name:'Push-Up to T', detail:'3×10 reps', superset: false },
+          { icon:'💪', name:'Bear Crawl', detail:'3×20m', superset: false },
+        ], duration: '70 min' },
+      { day: 'Sunday', name: 'Rest / Recovery', color: '#7a8099', intensity: 1,
+        exercises: [
+          { icon:'🧘', name:'Full Body Stretch', detail:'20 min', superset: false },
+          { icon:'🚶', name:'Light Walk', detail:'30 min easy', superset: false },
+          { icon:'🧘', name:'Foam Rolling', detail:'15 min', superset: false },
+        ], duration: '65 min', rest: true },
+    ]
+  }
+};
+
+// Clone plans for other goals (with minor variations)
+function getWorkoutPlan(goal, level) {
+  // Use fat-loss beginner as base, adjust names/reps per goal
+  const base = JSON.parse(JSON.stringify(WORKOUT_PLANS['fat-loss'].beginner));
+  
+  if (goal === 'muscle-gain') {
+    base.forEach(d => {
+      if (!d.rest) {
+        d.exercises.forEach(e => {
+          e.detail = e.detail.replace(/×(\d+) reps/, (m, r) => `×${Math.max(6, parseInt(r)-4)} reps`);
+        });
+      }
+    });
+    base[0].name = 'Chest + Triceps (Heavy)';
+    base[1].name = 'Back + Biceps (Heavy)';
+  }
+  if (goal === 'lean-athletic') {
+    base[5].name = 'Functional Conditioning';
+    base[4].exercises.unshift({ icon:'⚡', name:'Agility Ladder Drills', detail:'3×30 sec', superset: false });
+  }
+  if (level === 'advanced') {
+    base.forEach(d => {
+      if (!d.rest) {
+        d.exercises.forEach(e => {
+          e.detail = e.detail.replace(/(\d+)×/, (m, s) => `${parseInt(s)+1}×`);
+        });
+      }
+    });
+  }
+  return base;
+}
+
+// DIET DATA
+function getDietPlan(goal, weight) {
+  const plans = {
+    'fat-loss': {
+      tdee: Math.round(weight * 28),
+      protein: Math.round(weight * 2),
+      carbs: Math.round(weight * 2.5),
+      fat: Math.round(weight * 0.8),
+      meals: [
+        { icon:'☀️', title:'Breakfast', time:'7:00 AM', items:[
+          { name:'Oats with banana & chia seeds', cal:'~380 kcal' },
+          { name:'6 egg whites + 1 whole egg (scrambled)', cal:'~180 kcal' },
+          { name:'1 cup green tea (no sugar)', cal:'~5 kcal' },
+        ]},
+        { icon:'🌅', title:'Mid-Morning Snack', time:'10:30 AM', items:[
+          { name:'100g paneer cubes + cucumber', cal:'~180 kcal' },
+          { name:'1 apple', cal:'~80 kcal' },
+        ]},
+        { icon:'🌞', title:'Lunch', time:'1:00 PM', items:[
+          { name:'2 multigrain chapati', cal:'~200 kcal' },
+          { name:'Dal (1 cup) + sabzi', cal:'~250 kcal' },
+          { name:'100g chicken breast / tofu', cal:'~160 kcal' },
+          { name:'Salad (cucumber, tomato, onion)', cal:'~40 kcal' },
+        ]},
+        { icon:'🌇', title:'Evening Snack', time:'5:00 PM', items:[
+          { name:'Whey protein shake (water)', cal:'~130 kcal' },
+          { name:'Handful of almonds (15)', cal:'~100 kcal' },
+        ]},
+        { icon:'🌙', title:'Dinner', time:'8:00 PM', items:[
+          { name:'Grilled chicken 150g / paneer bhurji', cal:'~240 kcal' },
+          { name:'1 multigrain chapati or 1 cup brown rice', cal:'~150 kcal' },
+          { name:'Sabzi + raita (low fat)', cal:'~180 kcal' },
+        ]},
+      ]
+    },
+    'muscle-gain': {
+      tdee: Math.round(weight * 36),
+      protein: Math.round(weight * 2.2),
+      carbs: Math.round(weight * 4),
+      fat: Math.round(weight * 1),
+      meals: [
+        { icon:'☀️', title:'Breakfast', time:'7:00 AM', items:[
+          { name:'4 whole eggs + 4 whites (scrambled)', cal:'~380 kcal' },
+          { name:'2 slices multigrain bread + peanut butter', cal:'~280 kcal' },
+          { name:'1 glass full-fat milk', cal:'~150 kcal' },
+        ]},
+        { icon:'🌅', title:'Mid-Morning', time:'10:30 AM', items:[
+          { name:'Banana + whey protein shake (milk)', cal:'~300 kcal' },
+          { name:'30g mixed nuts', cal:'~180 kcal' },
+        ]},
+        { icon:'🌞', title:'Lunch', time:'1:00 PM', items:[
+          { name:'3 chapati / 1.5 cup basmati rice', cal:'~350 kcal' },
+          { name:'200g chicken breast / rajma', cal:'~280 kcal' },
+          { name:'Dal + sabzi', cal:'~220 kcal' },
+        ]},
+        { icon:'🌇', title:'Pre-Workout', time:'5:00 PM', items:[
+          { name:'Banana + peanut butter toast', cal:'~250 kcal' },
+          { name:'Whey protein shake', cal:'~150 kcal' },
+        ]},
+        { icon:'🌙', title:'Dinner', time:'8:30 PM', items:[
+          { name:'200g chicken/fish/paneer (grilled)', cal:'~320 kcal' },
+          { name:'1.5 cup brown rice or 3 chapati', cal:'~300 kcal' },
+          { name:'Mixed veg + curd', cal:'~200 kcal' },
+        ]},
+      ]
+    },
+    'lean-athletic': {
+      tdee: Math.round(weight * 32),
+      protein: Math.round(weight * 2.1),
+      carbs: Math.round(weight * 3.2),
+      fat: Math.round(weight * 0.9),
+      meals: [
+        { icon:'☀️', title:'Breakfast', time:'7:00 AM', items:[
+          { name:'Poha with sprouts & veggies', cal:'~320 kcal' },
+          { name:'3 boiled eggs', cal:'~210 kcal' },
+          { name:'Black coffee or green tea', cal:'~10 kcal' },
+        ]},
+        { icon:'🌅', title:'Mid-Morning', time:'10:00 AM', items:[
+          { name:'Greek yogurt + berries', cal:'~180 kcal' },
+          { name:'15 almonds', cal:'~100 kcal' },
+        ]},
+        { icon:'🌞', title:'Lunch', time:'1:00 PM', items:[
+          { name:'2 chapati + brown rice (half cup)', cal:'~280 kcal' },
+          { name:'Grilled chicken 150g or paneer', cal:'~240 kcal' },
+          { name:'Dal + seasonal sabzi + salad', cal:'~230 kcal' },
+        ]},
+        { icon:'🌇', title:'Pre/Post Workout', time:'5:30 PM', items:[
+          { name:'Whey protein + banana smoothie', cal:'~250 kcal' },
+          { name:'Rice cakes or fruit', cal:'~100 kcal' },
+        ]},
+        { icon:'🌙', title:'Dinner', time:'8:00 PM', items:[
+          { name:'Grilled fish/chicken 150g or paneer tikka', cal:'~270 kcal' },
+          { name:'1 chapati + dal soup', cal:'~200 kcal' },
+          { name:'Steamed veggies + raita', cal:'~120 kcal' },
+        ]},
+      ]
+    }
+  };
+  return plans[goal] || plans['lean-athletic'];
+}
+
+// ATHLETIC DATA
+const ATHLETIC_MODULES = [
+  {
+    type: 'sprint',
+    icon: '⚡',
+    title: 'Sprint HIIT Protocol',
+    desc: 'Maximize fat burn and develop explosive speed with structured sprint intervals. Do this 2x per week.',
+    drills: [
+      '6–8 × 30-second all-out sprints',
+      '30–60 sec rest between sprints',
+      'Warm up: 5 min jog + dynamic stretching',
+      'Cool down: 5 min easy jog + stretch',
+      'Total: ~25–30 minutes',
+    ]
+  },
+  {
+    type: 'agility',
+    icon: '🎯',
+    title: 'Agility & Coordination',
+    desc: 'Ladders, cone drills, and direction changes to build athleticism, balance, and reaction time.',
+    drills: [
+      'Ladder In/Out Quick Feet — 4×30 sec',
+      'T-Drill cone run — 5×30 sec',
+      '5-10-5 Shuttle — 4×30 sec',
+      'Lateral hurdle hops — 3×15 each side',
+      'Reactive step drill — 3×45 sec',
+    ]
+  },
+  {
+    type: 'explosive',
+    icon: '💥',
+    title: 'Explosive Bodyweight',
+    desc: 'Plyometric and explosive movements to develop power and burn calories fast.',
+    drills: [
+      'Burpees — 4×10 reps (30 sec rest)',
+      'Jump Squats — 4×15 reps',
+      'Mountain Climbers — 4×30 sec',
+      'Clap Push-Ups — 3×8 reps',
+      'Tuck Jumps — 3×10 reps',
+    ]
+  },
+  {
+    type: 'mma',
+    icon: '🥊',
+    title: 'MMA Conditioning',
+    desc: 'Shadow boxing, kicks, and combat sports conditioning for full-body athleticism and stress relief.',
+    drills: [
+      'Shadow Boxing — 5×2 min rounds',
+      'Jab-Cross-Hook-Uppercut combos',
+      'Bob & Weave footwork drills',
+      'Knee strikes + kick combinations',
+      '1 min rest between rounds',
+    ]
+  }
+];
+
+// WELLNESS DATA
+const WELLNESS_DATA = [
+  {
+    icon: '😴',
+    title: 'Sleep Protocol',
+    content: 'Aim for 7–8 hours of quality sleep every night. Sleep is when your muscles grow and repair.',
+    list: [
+      'Sleep by 10:30 PM, wake by 6 AM',
+      'No screens 45 min before bed',
+      'Keep room cool (18–20°C)',
+      'Magnesium glycinate helps recovery',
+      'Track sleep quality weekly',
+    ]
+  },
+  {
+    icon: '🌅',
+    title: 'Morning Routine',
+    content: 'Start your day with intention. A 15-minute morning protocol primes your body and mind for peak performance.',
+    list: [
+      'Wake-up: Drink 500ml water immediately',
+      '5 min: Sun exposure or bright light',
+      '10 min: Mobility + joint circles',
+      '5 min: Light yoga / cat-cow / hip flexors',
+      'Optional: Cold shower for 90 sec',
+    ]
+  },
+  {
+    icon: '🧘',
+    title: 'Stress Management',
+    content: 'High cortisol sabotages your physique goals. These quick techniques reset your nervous system.',
+    list: [
+      '4-7-8 Breathing: Inhale 4s, hold 7s, exhale 8s',
+      'Box breathing: 4s each side, 5 rounds',
+      '5-min mindfulness walk post-lunch',
+      'Journaling: 3 wins + 1 focus before bed',
+      'Limit caffeine after 2 PM',
+    ]
+  },
+  {
+    icon: '🔧',
+    title: 'Weekly Recovery',
+    content: 'Strategic recovery prevents overtraining, reduces injury risk, and keeps you progressing.',
+    list: [
+      'Sunday: Full rest or light yoga only',
+      '2× per week: 10 min foam rolling',
+      'Ice bath or cold shower after leg day',
+      'Epsom salt bath once a week',
+      'Deload week every 6–8 weeks',
+    ]
+  }
+];
+
+// ────────────────────────────────
+// BMI LOGIC
+// ────────────────────────────────
+function calcBMI(weight, height) {
+  const h = height / 100;
+  return (weight / (h * h)).toFixed(1);
+}
+
+function getBMICategory(bmi) {
+  if (bmi < 18.5) return { label: 'Underweight', color: '#47ffe8', pct: 8 };
+  if (bmi < 25)   return { label: 'Normal',      color: '#4ade80', pct: 35 };
+  if (bmi < 30)   return { label: 'Overweight',  color: '#facc15', pct: 62 };
+  return               { label: 'Obese',         color: '#f87171', pct: 85 };
+}
+
+function getBMIInterp(bmi, goal) {
+  if (bmi < 18.5) return `Your BMI of ${bmi} puts you in the <strong>underweight</strong> range. Focus on a caloric surplus and progressive strength training. Your goal should prioritize building lean muscle mass before aggressive fat loss.`;
+  if (bmi < 22)   return `Your BMI of ${bmi} is in the <strong>healthy range</strong> — excellent starting point! You're well-positioned to achieve your ${goalLabel(goal)} goal with this program. Focus on consistency.`;
+  if (bmi < 25)   return `Your BMI of ${bmi} is in the <strong>healthy range</strong>. A small recomposition phase (build muscle while losing fat) is highly achievable for you. Nail your protein and training intensity.`;
+  if (bmi < 30)   return `Your BMI of ${bmi} indicates <strong>slight overweight</strong>. A 300–500 kcal daily deficit combined with this program will have you in the normal range within 3–5 months. Prioritize protein and sleep.`;
+  return `Your BMI of ${bmi} is in the <strong>obese range</strong>. The good news: you'll see rapid and visible results in the first 8–12 weeks of consistent training and clean eating. Focus on fat loss first, muscle building follows.`;
+}
+
+function goalLabel(g) {
+  return { 'fat-loss': 'Fat Loss', 'muscle-gain': 'Muscle Gain', 'lean-athletic': 'Lean Athletic Body' }[g] || g;
+}
+
+// ────────────────────────────────
+// RENDER FUNCTIONS
+// ────────────────────────────────
+
+function renderProfile(data) {
+  const initial = data.name ? data.name[0].toUpperCase() : '?';
+  const radius = 40, circumference = 2 * Math.PI * radius;
+  const prog = 72; // cosmetic
+  const dashOffset = circumference - (prog / 100) * circumference;
+
+  document.getElementById('profileSummary').innerHTML = `
+    <div class="profile-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="${radius}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+        <circle cx="50" cy="50" r="${radius}" fill="none" stroke="var(--accent)" stroke-width="6"
+          stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
+          stroke-linecap="round"/>
+      </svg>
+      <div class="profile-ring-center">
+        <div class="profile-initial">${initial}</div>
+      </div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name">${data.name || 'Athlete'}</div>
+      <div class="profile-meta">${data.age} yrs · ${data.gender} · ${data.height}cm · ${data.weight}kg</div>
+      <div class="profile-tags">
+        <span class="profile-tag">${goalLabel(data.goal)}</span>
+        <span class="profile-tag">${data.level}</span>
+        <span class="profile-tag">${data.trainingType}</span>
+        <span class="profile-tag">${data.time} min/day</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderBMI(weight, height, goal) {
+  const bmi = calcBMI(weight, height);
+  const cat = getBMICategory(parseFloat(bmi));
+
+  document.getElementById('bmiNumber').textContent = bmi;
+  document.getElementById('bmiCatBadge').textContent = cat.label;
+  document.getElementById('bmiCatBadge').style.background = cat.color + '22';
+  document.getElementById('bmiCatBadge').style.color = cat.color;
+  document.getElementById('bmiCatBadge').style.border = `1px solid ${cat.color}44`;
+  document.getElementById('bmiPointer').style.left = cat.pct + '%';
+  document.getElementById('bmiInterp').innerHTML = getBMIInterp(parseFloat(bmi), goal);
+}
+
+function renderWorkout(goal, level) {
+  const plan = getWorkoutPlan(goal, level);
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = plan.map(day => `
+    <div class="day-card ${day.rest ? 'rest-day' : ''}">
+      <div class="day-header">
+        <div>
+          <div class="day-num">${day.day}</div>
+          <div class="day-name">${day.name}</div>
+        </div>
+        <div class="day-badge" style="background:${day.color}22;color:${day.color};border:1px solid ${day.color}44">
+          ${day.rest ? 'REST' : 'ACTIVE'}
+        </div>
+      </div>
+      <div class="day-body">
+        <ul class="exercise-list">
+          ${day.exercises.map(ex => `
+            <li class="exercise-item">
+              <div class="exercise-icon">${ex.icon}</div>
+              <div class="exercise-info">
+                ${ex.superset ? '<div class="superset-label">Superset ↓</div>' : ''}
+                <div class="exercise-name">${ex.name}</div>
+                <div class="exercise-detail">${ex.detail}</div>
+              </div>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+      <div class="day-footer">
+        <div class="duration-pill">⏱ ${day.duration}</div>
+        <div class="intensity-dots">
+          ${[1,2,3,4,5].map(i => `<div class="dot ${i <= day.intensity ? 'on' : ''}"></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAthletic() {
+  document.getElementById('athleticGrid').innerHTML = ATHLETIC_MODULES.map(m => `
+    <div class="athletic-card ${m.type}">
+      <div class="athletic-icon">${m.icon}</div>
+      <div class="athletic-title">${m.title}</div>
+      <div class="athletic-desc">${m.desc}</div>
+      <ul class="drill-list">
+        ${m.drills.map(d => `<li class="drill-item">${d}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
+function renderDiet(goal, weight) {
+  const plan = getDietPlan(goal, weight);
+  
+  document.getElementById('dietSubtitle').textContent = `${plan.tdee} kcal daily target · ${plan.protein}g protein · ${plan.carbs}g carbs · ${plan.fat}g fat`;
+  
+  document.getElementById('calorieStrip').innerHTML = `
+    <div class="cal-card"><div class="cal-num">${plan.tdee}</div><div class="cal-label">Daily Calories</div></div>
+    <div class="cal-card"><div class="cal-num" style="color:var(--accent)">${plan.protein}g</div><div class="cal-label">Protein</div></div>
+    <div class="cal-card"><div class="cal-num" style="color:var(--accent2)">${plan.carbs}g</div><div class="cal-label">Carbs</div></div>
+    <div class="cal-card"><div class="cal-num" style="color:var(--warn)">${plan.fat}g</div><div class="cal-label">Fat</div></div>
+    <div class="cal-card"><div class="cal-num" style="color:var(--success)">5</div><div class="cal-label">Meals / Day</div></div>
+  `;
+
+  document.getElementById('dietGrid').innerHTML = plan.meals.map(meal => `
+    <div class="meal-card">
+      <div class="meal-header">
+        <div class="meal-icon">${meal.icon}</div>
+        <div>
+          <div class="meal-title">${meal.title}</div>
+          <div class="meal-time">${meal.time}</div>
+        </div>
+      </div>
+      <div class="meal-body">
+        ${meal.items.map(item => `
+          <div class="food-item">
+            <span class="food-name">${item.name}</span>
+            <span class="food-cal">${item.cal}</span>
+          </div>
+        `).join('')}
+        <div class="macro-bar">
+          <div class="macro-pill"><div class="macro-val">P↑</div><div class="macro-label">Protein</div></div>
+          <div class="macro-pill"><div class="macro-val">C→</div><div class="macro-label">Carbs</div></div>
+          <div class="macro-pill"><div class="macro-val">F↓</div><div class="macro-label">Fats</div></div>
+        </div>
+      </div>
+    </div>
+  `).join('') + `
+    <div class="hydration-card" style="grid-column:1/-1">
+      <div class="hydration-title">💧 Hydration Guide</div>
+      <div class="water-icons">${Array(8).fill('💧').join('')}</div>
+      <p style="font-size:.85rem;color:var(--muted);line-height:1.7">
+        <strong style="color:var(--accent3)">Drink 3–4 litres of water daily.</strong> Start your morning with 500ml on an empty stomach.
+        Drink 500ml 30–45 min before your workout. Sip throughout training. Rehydrate with 500ml post-workout.
+        Add a pinch of Himalayan salt + lemon in 1 glass for electrolyte replenishment.
+        Avoid cold water during meals — it slows digestion.
+      </p>
+    </div>
+  `;
+}
+
+function renderWellness() {
+  document.getElementById('wellnessGrid').innerHTML = WELLNESS_DATA.map(w => `
+    <div class="wellness-card">
+      <div class="wellness-icon">${w.icon}</div>
+      <div class="wellness-title">${w.title}</div>
+      <div class="wellness-content">${w.content}</div>
+      <ul class="wellness-list">
+        ${w.list.map(l => `<li>${l}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
+// ────────────────────────────────
+// MAIN GENERATE FUNCTION
+// ────────────────────────────────
+function generatePlan() {
+  const name = document.getElementById('name').value.trim() || 'Athlete';
+  const age = parseInt(document.getElementById('age').value) || 28;
+  const gender = document.getElementById('gender').value || 'male';
+  const height = parseFloat(document.getElementById('height').value) || 175;
+  const weight = parseFloat(document.getElementById('weight').value) || 72;
+  const goal = document.getElementById('goal').value || 'lean-athletic';
+  const level = document.getElementById('level').value || 'intermediate';
+  const time = document.getElementById('time').value || '80';
+  const trainingType = document.getElementById('trainingType').value || 'gym';
+
+  // Validate
+  if (!goal || !level || !trainingType) {
+    alert('Please fill in all dropdown fields (Goal, Level, Training Type).');
+    return;
+  }
+  if (height < 100 || weight < 30) {
+    alert('Please enter valid height and weight values.');
+    return;
+  }
+
+  const data = { name, age, gender, height, weight, goal, level, time, trainingType };
+
+  // Set quote
+  quoteIndex = Math.floor(Math.random() * QUOTES.length);
+  document.getElementById('dynamicQuote').textContent = QUOTES[quoteIndex].text;
+  document.getElementById('quoteAuthor').textContent = '— ' + QUOTES[quoteIndex].author;
+  document.getElementById('workoutSubtitle').textContent = `${goalLabel(goal)} plan · ${level.charAt(0).toUpperCase()+level.slice(1)} level · ${trainingType} training`;
+
+  renderProfile(data);
+  renderBMI(weight, height, goal);
+  renderWorkout(goal, level);
+  renderAthletic();
+  renderDiet(goal, weight);
+  renderWellness();
+
+  const results = document.getElementById('results');
+  results.classList.add('visible');
+  setTimeout(() => {
+    document.getElementById('bmi-section').scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+}
+
+function resetForm() {
+  ['name','age','height','weight'].forEach(id => document.getElementById(id).value = '');
+  ['gender','goal','level','trainingType'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('time').value = '80';
+  document.getElementById('results').classList.remove('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Init quote display
+document.getElementById('dynamicQuote').textContent = QUOTES[0].text;
+document.getElementById('quoteAuthor').textContent = '— ' + QUOTES[0].author;
+</script>
+</body>
+</html>
